@@ -1,5 +1,4 @@
-import pkg from '@whiskeysockets/baileys';
-const { default: makeWASocket, DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion } = pkg;
+import makeWASocket, { DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion } from '@whiskeysockets/baileys';
 import { Boom } from '@hapi/boom';
 import pino from 'pino';
 import qrcode from 'qrcode-terminal';
@@ -37,9 +36,12 @@ export async function iniciarWhatsApp() {
       console.log('\n📱 ESCANEA ESTE CÓDIGO QR CON WHATSAPP:\n');
       console.log('Abre WhatsApp → Dispositivos vinculados → Vincular dispositivo\n');
       qrcode.generate(qr, { small: false });
-      console.log('\n⚠️ Si no puedes escanear el QR, copia este código y úsalo en WhatsApp Web:');
+      console.log('\n⚠️ CÓDIGO QR EN FORMATO TEXTO (para debugging):');
       console.log(qr);
-      console.log('\n');
+      console.log('\n💡 TIP: Si el QR no es legible, usa WhatsApp Web en tu PC para vincular más fácilmente.');
+      console.log('   1. Abre https://web.whatsapp.com en tu navegador');
+      console.log('   2. Escanea el QR que aparece ahí con tu teléfono');
+      console.log('   3. El bot se conectará automáticamente\n');
     }
 
     if (connection === 'close') {
