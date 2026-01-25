@@ -1,0 +1,153 @@
+import makeWASocket, { 
+  DisconnectReason, 
+  useMultiFileAuthState,
+  fetchLatestBaileysVersion 
+} from '@whiskeysockets/baileys';
+import { Boom } from '@hapi/boom';
+import pino from 'pino';
+import qrcode from 'qrcode-terminal';
+import { consultarEstadoCliente } from './scraper-v2.js';
+
+let sock;
+
+// Estadísticas en memoria (opcional)
+const stats = {
+  total: 0,
+  exitosas: 0,
+  errores: 0
+};
+
+/**
+ * Inicia el cliente de WhatsApp
+ */
+export async function iniciarWhatsApp() {
+  const { state, saveCreds } = await useMultiFileAuthState('sessions');
+  const { version } = await fetchLatestBaileysVersion();
+
+  sock = makeWASocket({
+    version,
+    auth: state,
+    printQRInTerminal: false,
+    logger: pino({ level: 'silent' }),
+    browser: ['Win Bot', 'Chrome', '1.0.0']
+  });
+
+  // Manejar código QR
+  sock.ev.on('connection.update', async (update) => {
+    const { connection, lastDisconnect, qr } = update;
+
+    if (qr) {
+      console.log('\n📱 Escanea este código QR con WhatsApp:\n');
+      qrcode.generate(qr, { small: true });
+    }
+
+    if (connection === 'close') {
+      const shouldReconnect = 
+        (lastDisconnect?.error instanceof Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
+      
+      console.log('❌ Conexión cerrada. Reconectando:', shouldReconnect);
+      
+      if (shouldReconnect) {
+        iniciarWhatsApp();
+      }
+    } else if (connection === 'open') {
+      console.log('✅ WhatsApp conectado exitosamente');
+    }
+  });
+
+  // Guardar credenciales
+  sock.ev.on('creds.update', saveCreds);
+
+  // Manejar mensajes entrantes
+  sock.ev.on('messages.upsert', async ({ messages }) => {
+    for (const msg of messages) {
+      await procesarMensaje(msg);
+    }
+  });
+
+  return sock;
+}
+
+/**
+ * Procesa mensajes entrantes
+ */
+async function procesarMensaje(msg) {
+  try {
+    // Ignorar mensajes propios
+    if (msg.key.fromMe) return;
+
+    // Obtener texto del mensaje
+    const texto = msg.message?.conversation || 
+                  msg.message?.extendedTextMessage?.text || '';
+
+    // Detectar patrón "Estado 12345678"
+    const match = texto.match(/Estado\s+(\d{8})/i);
+    
+    if (!match) return;
+
+    const dni = match[1];
+    const chatId = msg.key.remoteJid;
+
+    console.log(`\n🔔 Nueva consulta de ${chatId} para DNI: ${dni}`);
+    stats.total++;
+
+    // Enviar mensaje de "procesando"
+    await sock.sendMessage(chatId, { 
+      text: `⏳ Consultando estado del cliente ${dni}...\nEsto puede tomar unos segundos.` 
+    });
+
+    try {
+      // Ejecutar consulta
+      const datos = await consultarEstadoCliente(dni);
+
+      if (datos) {
+        // Formatear respuesta
+        const respuesta = `
+📊 *ESTADO DEL CLIENTE ${datos.docCliente}*
+━━━━━━━━━━━━━━━━━━━━━━━
+
+📄 *Doc Cliente:* ${datos.docCliente}
+📌 *Estado Pedido:* ${datos.estadoPedido}
+${datos.motivoRechazo !== 'N/A' ? `❌ *Motivo Rechazo:* ${datos.motivoRechazo}` : ''}
+✅ *Estado Orden:* ${datos.estadoOrden}
+📅 *Fecha Programada:* ${datos.fechaProgramada}
+⏰ *Tramo Horario:* ${datos.tramoHorario}
+
+━━━━━━━━━━━━━━━━━━━━━━━
+🤖 _Consulta automática Win Bot_
+
+_Desarrollado por 13 El Futuro Hoy 2026_
+https://www.13elfuturohoy.com/
+        `.trim();
+
+        await sock.sendMessage(chatId, { text: respuesta });
+        
+        stats.exitosas++;
+        console.log(`✅ Consulta exitosa para DNI: ${dni}`);
+      } else {
+        await sock.sendMessage(chatId, { 
+          text: `❌ No se encontraron datos para el DNI: *${dni}*\n\nVerifique que el número sea correcto y que exista en el sistema.` 
+        });
+        console.log(`⚠️ Sin resultados para DNI: ${dni}`);
+      }
+    } catch (error) {
+      console.error('Error al procesar consulta:', error);
+      
+      await sock.sendMessage(chatId, { 
+        text: `⚠️ *Error al consultar*\n\nOcurrió un problema al buscar el DNI: ${dni}\n\nPor favor, intente nuevamente en unos minutos.` 
+      });
+      stats.errores++;
+    }
+  } catch (error) {
+    console.error('Error al procesar mensaje:', error);
+  }
+}
+
+/**
+ * Obtiene estadísticas en memoria
+ */
+export function obtenerEstadisticas() {
+  return { ...stats };
+}
+
+export { sock };

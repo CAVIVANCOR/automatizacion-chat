@@ -1,0 +1,38 @@
+# Dependencias
+node_modules/
+package-lock.json
+
+# Variables de entorno (CRÍTICO - Contiene credenciales)
+.env
+.env.local
+.env.*.local
+
+# Sesiones de WhatsApp (Contiene autenticación)
+sessions/
+auth_info_baileys/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos temporales
+*.tmp
+temp/
+
+# Docker (no usado - solo Node.js nativo para Render Free)
+Dockerfile
+.dockerignore
+
+# Screenshots de debug
+debug-*.png

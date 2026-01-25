@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: win-bot-whatsapp
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: |
+      npm install
+      npm install -g puppeteer
+    startCommand: npm start
+    envVars:
+      - key: WIN_EMAIL
+        sync: false
+      - key: WIN_PASSWORD
+        sync: false
+      - key: WIN_URL
+        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
+        value: true
+      - key: PUPPETEER_EXECUTABLE_PATH
+        value: /usr/bin/chromium-browser
