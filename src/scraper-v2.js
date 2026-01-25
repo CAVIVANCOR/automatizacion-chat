@@ -19,8 +19,13 @@ export async function consultarEstadoCliente(dni) {
       '--disable-dev-shm-usage',
       '--disable-accelerated-2d-canvas',
       '--disable-gpu',
-      '--disable-blink-features=AutomationControlled'
-    ]
+      '--disable-blink-features=AutomationControlled',
+      '--disable-features=IsolateOrigins,site-per-process',
+      '--disable-web-security',
+      '--disable-features=VizDisplayCompositor',
+      '--single-process'
+    ],
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath()
   });
 
   try {
