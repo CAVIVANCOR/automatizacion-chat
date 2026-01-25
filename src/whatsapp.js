@@ -34,8 +34,12 @@ export async function iniciarWhatsApp() {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
-      console.log('\n📱 Escanea este código QR con WhatsApp:\n');
-      qrcode.generate(qr, { small: true });
+      console.log('\n📱 ESCANEA ESTE CÓDIGO QR CON WHATSAPP:\n');
+      console.log('Abre WhatsApp → Dispositivos vinculados → Vincular dispositivo\n');
+      qrcode.generate(qr, { small: false });
+      console.log('\n⚠️ Si no puedes escanear el QR, copia este código y úsalo en WhatsApp Web:');
+      console.log(qr);
+      console.log('\n');
     }
 
     if (connection === 'close') {
@@ -117,22 +121,43 @@ _Desarrollado por 13 El Futuro Hoy 2026_
 https://www.13elfuturohoy.com/
         `.trim();
 
-        await sock.sendMessage(chatId, { text: respuesta });
-        
-        stats.exitosas++;
-        console.log(`✅ Consulta exitosa para DNI: ${dni}`);
+        try {
+          await sock.sendMessage(chatId, { text: respuesta });
+          stats.exitosas++;
+          console.log(`✅ Consulta exitosa para DNI: ${dni}`);
+        } catch (sendError) {
+          console.error('Error al enviar mensaje (reintentando):', sendError.message);
+          // Reintentar después de 2 segundos
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          try {
+            await sock.sendMessage(chatId, { text: respuesta });
+            stats.exitosas++;
+            console.log(`✅ Consulta exitosa para DNI: ${dni} (reintento)`);
+          } catch (retryError) {
+            console.error('Error al enviar mensaje (segundo intento):', retryError.message);
+            stats.errores++;
+          }
+        }
       } else {
-        await sock.sendMessage(chatId, { 
-          text: `❌ No se encontraron datos para el DNI: *${dni}*\n\nVerifique que el número sea correcto y que exista en el sistema.` 
-        });
-        console.log(`⚠️ Sin resultados para DNI: ${dni}`);
+        try {
+          await sock.sendMessage(chatId, { 
+            text: `❌ No se encontraron datos para el DNI: *${dni}*\n\nVerifique que el número sea correcto y que exista en el sistema.` 
+          });
+          console.log(`⚠️ Sin resultados para DNI: ${dni}`);
+        } catch (sendError) {
+          console.error('Error al enviar mensaje de "sin resultados":', sendError.message);
+        }
       }
     } catch (error) {
       console.error('Error al procesar consulta:', error);
       
-      await sock.sendMessage(chatId, { 
-        text: `⚠️ *Error al consultar*\n\nOcurrió un problema al buscar el DNI: ${dni}\n\nPor favor, intente nuevamente en unos minutos.` 
-      });
+      try {
+        await sock.sendMessage(chatId, { 
+          text: `⚠️ *Error al consultar*\n\nOcurrió un problema al buscar el DNI: ${dni}\n\nPor favor, intente nuevamente en unos minutos.` 
+        });
+      } catch (sendError) {
+        console.error('Error al enviar mensaje de error:', sendError.message);
+      }
       stats.errores++;
     }
   } catch (error) {
