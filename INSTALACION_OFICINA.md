@@ -1,17 +1,31 @@
 # 🖥️ Guía de Instalación - Laptop de Oficina
 
-## 📋 Requisitos Previos
+## 📋 PASO 1: Instalar Node.js
 
-- Windows 10/11
-- Node.js 18 o superior instalado
-- Git instalado
-- Conexión a internet
+1. Descarga Node.js desde: https://nodejs.org
+2. Ejecuta el instalador (siguiente, siguiente, siguiente)
+3. Reinicia PowerShell
+4. Verifica instalación:
+```bash
+node --version
+```
+Debe mostrar versión 20 o superior.
 
 ---
 
-## 🚀 Instalación Paso a Paso
+## � PASO 2: Instalar Git
 
-### **Paso 1: Clonar el Repositorio**
+1. Descarga Git desde: https://git-scm.com/download/win
+2. Ejecuta el instalador (siguiente con opciones por defecto)
+3. Reinicia PowerShell
+4. Verifica instalación:
+```bash
+git --version
+```
+
+---
+
+## 🚀 PASO 3: Clonar el Repositorio
 
 Abre PowerShell y ejecuta:
 
@@ -23,25 +37,35 @@ cd automatizacion-chat
 
 ---
 
-### **Paso 2: Instalar Dependencias**
+## 📦 PASO 4: Instalar Dependencias
 
 ```bash
 npm install
 ```
 
-Este proceso tomará 2-3 minutos. Instalará todas las librerías necesarias.
+Espera 2-3 minutos.
 
 ---
 
-### **Paso 3: Configurar Variables de Entorno**
+## 🌐 PASO 5: Instalar Chrome para Puppeteer
 
-Crea el archivo `.env` con las credenciales de Win.pe:
+```bash
+npx puppeteer browsers install chrome
+```
+
+Espera a que descargue Chrome (~180 MB).
+
+---
+
+## ⚙️ PASO 6: Configurar Variables de Entorno
+
+**IMPORTANTE:** El archivo debe llamarse `.env` (sin .txt)
 
 ```bash
 notepad .env
 ```
 
-Copia y pega esto en el archivo:
+Copia y pega **exactamente** esto:
 
 ```
 WIN_EMAIL=Planeamiento@futurapro.pe
@@ -49,23 +73,21 @@ WIN_PASSWORD=PFutura24!
 WIN_URL=https://accesoventas.win.pe/
 ```
 
-**Guarda el archivo** (Ctrl+S) y cierra el Notepad.
+**Guarda** (Ctrl+S) y cierra.
 
 ---
 
-### **Paso 4: Ejecutar el Bot**
+## 🚀 PASO 7: Ejecutar el Bot
 
 ```bash
 npm start
 ```
 
-Verás algo como:
+Verás:
 
 ```
 ╔═══════════════════════════════════════╗
 ║   🤖 WIN BOT - CONSULTAS DE VENTAS   ║
-║        100% Open Source & Gratis      ║
-║          Sin Base de Datos            ║
 ╚═══════════════════════════════════════╝
 
 ✅ Bot iniciado correctamente
@@ -74,16 +96,16 @@ Verás algo como:
 
 ---
 
-### **Paso 5: Vincular WhatsApp**
+## 📱 PASO 8: Vincular WhatsApp
 
-Aparecerá un **código QR** en la consola.
+Aparecerá un **código QR**.
 
 1. Abre **WhatsApp** en tu teléfono
-2. Ve a **Configuración** → **Dispositivos vinculados**
-3. Toca **"Vincular un dispositivo"**
-4. **Escanea el código QR** que aparece en la consola
+2. **Configuración** → **Dispositivos vinculados**
+3. **Vincular un dispositivo**
+4. **Escanea el QR**
 
-Verás el mensaje:
+Verás:
 
 ```
 ✅ WhatsApp conectado exitosamente
@@ -175,46 +197,53 @@ pm2 restart win-bot
 
 ## 🛠️ Solución de Problemas
 
+### **Error: Could not find Chrome**
+
+Si ves este error, falta instalar Chrome para Puppeteer:
+
+```bash
+npx puppeteer browsers install chrome
+```
+
+---
+
+### **Error: Invalid parameters (archivo .env)**
+
+El archivo se llama `.env.txt` en lugar de `.env`:
+
+```bash
+ren .env.txt .env
+type .env
+```
+
+Verifica que contenga las 3 líneas correctas (sin espacios extra).
+
+---
+
+### **Error: Bad MAC / WhatsApp se desconecta**
+
+Sesión de WhatsApp corrupta o de otra laptop:
+
+1. Detén el bot (Ctrl+C)
+2. En tu teléfono: **WhatsApp** → **Dispositivos vinculados** → Cierra sesión en TODOS los dispositivos del bot
+3. En PowerShell:
+```bash
+rmdir /s sessions
+npm start
+```
+4. Escanea el QR nuevamente
+
+---
+
 ### **El bot no inicia**
 
-Verifica que Node.js esté instalado:
+Verifica Node.js:
 
 ```bash
 node --version
 ```
 
-Debe mostrar versión 18 o superior.
-
----
-
-### **Error de credenciales**
-
-Verifica que el archivo `.env` tenga las credenciales correctas:
-
-```bash
-notepad .env
-```
-
----
-
-### **WhatsApp se desconecta**
-
-El bot se reconectará automáticamente. Si no lo hace:
-
-```bash
-# Detener el bot (Ctrl+C)
-# Eliminar sesiones antiguas
-rmdir /s sessions
-# Reiniciar el bot
-npm start
-# Escanear el QR nuevamente
-```
-
----
-
-### **El scraper no funciona**
-
-Verifica que las credenciales de Win.pe sean correctas en el archivo `.env`.
+Debe mostrar versión 20 o superior.
 
 ---
 
@@ -258,32 +287,42 @@ Si tienes problemas:
 ## 🎯 Resumen Rápido
 
 ```bash
-# Instalación inicial (solo una vez)
+# 1. Instalar Node.js desde https://nodejs.org
+# 2. Instalar Git desde https://git-scm.com/download/win
+# 3. Reiniciar PowerShell
+
+# 4. Clonar repositorio
 cd C:\Proyectos
 git clone https://github.com/CAVIVANCOR/automatizacion-chat.git
 cd automatizacion-chat
-npm install
-notepad .env  # Agregar credenciales
 
-# Ejecutar el bot
+# 5. Instalar dependencias
+npm install
+
+# 6. Instalar Chrome para Puppeteer
+npx puppeteer browsers install chrome
+
+# 7. Crear archivo .env (sin .txt)
+notepad .env
+# Copiar las 3 líneas de credenciales, guardar y cerrar
+
+# 8. Ejecutar el bot
 npm start
 
-# O con PM2 (recomendado)
-npm install -g pm2
-pm2 start src/index.js --name win-bot
-pm2 save
-pm2 startup
+# 9. Escanear QR con WhatsApp
 ```
 
 ---
 
 ## ✅ Checklist de Instalación
 
-- [ ] Node.js instalado (versión 18+)
+- [ ] Node.js instalado (versión 20+)
 - [ ] Git instalado
+- [ ] PowerShell reiniciado
 - [ ] Repositorio clonado
 - [ ] Dependencias instaladas (`npm install`)
-- [ ] Archivo `.env` creado con credenciales
+- [ ] Chrome instalado para Puppeteer (`npx puppeteer browsers install chrome`)
+- [ ] Archivo `.env` creado (sin .txt) con credenciales
 - [ ] Bot ejecutado (`npm start`)
 - [ ] WhatsApp vinculado (QR escaneado)
 - [ ] Prueba realizada (enviar "Estado 12345678")
